@@ -19,8 +19,8 @@
 
 // A few generically useful utilities.
 
-#ifndef StdH
-#define StdH
+#ifndef GalSim_StdH
+#define GalSim_StdH
 
 #include <cmath>
 #define _USE_MATH_DEFINES  // To make sure M_PI is defined.
