@@ -170,11 +170,11 @@ HsmShape::HsmShape(
     _measType(measType),
     _e1Key(addEllipticityField(ctrl.name, '1', measType, schema, doc)),
     _e2Key(addEllipticityField(ctrl.name, '2', measType, schema, doc)),
-    _resolutionKey(
-        schema.addField<double>(ctrl.name + ".resolution", "resolution factor (0=unresolved, 1=resolved)")
-    ),
     _sigmaKey(
         schema.addField<double>(ctrl.name + ".sigma", doc + " (width)")
+    ),
+    _resolutionKey(
+        schema.addField<double>(ctrl.name + ".resolution", "resolution factor (0=unresolved, 1=resolved)")
     ),
     _flagKey(schema.addField<afw::table::Flag>(ctrl.name + ".flags", "set if measurement failed in any way")),
     _hasDeblendKey(ctrl.deblendNChild.size() > 0)
