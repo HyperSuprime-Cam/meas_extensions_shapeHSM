@@ -2,6 +2,7 @@
 from lsst.sconsUtils import scripts
 from SCons.Script import Glob
 scripts.BasicSConscript.lib(src=["#src/HsmShape.cc",
+                                 "#src/HsmMoments.cc",
                                  "#src/CppShear.cpp",
                                  "#src/Image.cpp",
                                  "#src/hsm/PSFCorr.cpp",
