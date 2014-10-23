@@ -49,9 +49,11 @@ damages of any kind.
 #include <string>
 #define TMV_NDEBUG
 #include "TMV.h"
-#include "hsm/PSFCorr.h"
+#include "galsim/hsm/PSFCorr.h"
 
+#ifdef USE_GALSIM_FFT
 #include "FFT.h"
+#endif
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan()
 
 #ifdef DEBUGLOGGING
@@ -333,7 +335,7 @@ namespace hsm {
 
     void fourier_trans_1(double *data, long nn, int isign) 
     {
-#if 1
+#ifdef USE_GALSIM_FFT
         // Allocate memory
         FFTW_Array<std::complex<double> > b1(nn);
         FFTW_Array<std::complex<double> > b2(nn);
@@ -957,7 +959,7 @@ namespace hsm {
         dbg<<"mIm2 = "<<mIm2<<std::endl;
         dbg<<"mIm3 = "<<mIm3<<std::endl;
 
-#if 1
+#ifdef USE_GALSIM_FFT
         // Get a good size to use for the FFTs
         int N1 = std::max(nx1,ny1) * 4/3;
         int N2 = std::max(nx2,ny2) * 4/3;

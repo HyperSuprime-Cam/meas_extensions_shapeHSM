@@ -23,7 +23,7 @@
 
 //#define DEBUGLOGGING
 
-#include "CppShear.h"
+#include "galsim/CppShear.h"
 
 #ifdef DEBUGLOGGING
 #include <fstream>

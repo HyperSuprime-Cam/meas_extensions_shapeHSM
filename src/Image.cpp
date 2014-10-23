@@ -19,9 +19,8 @@
 
 #include <sstream>
 
-#include "Image.h"
-#include "ImageArith.h"
-#include "FFT.h"
+#include "galsim/Image.h"
+#include "galsim/ImageArith.h"
 
 namespace galsim {
 
