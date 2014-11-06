@@ -1,0 +1,51 @@
+This repository contains code merged from GalSim.
+
+GalSim's HSM code uses the Template Matrix/Vector package by Mike Jarvis
+(http://code.google.com/p/tmv-cpp/).  However, we don't want to add an
+additional dependency, and so we have added a dummy TMV.h file that
+implements the required TMV functionality (tmv::Vector, tmv::Matrix,
+tmv::MatrixView, tmv::ConstMatrixView) using ndarray and Eigen.  Changes
+to the TMV APIs used by HSM will need to be reflected in this TMV.h file.
+
+
+We should be able to merge future GalSim updates using the following procedure:
+
+Clone the GalSim repo:
+
+git clone git@github.com:GalSim-developers/GalSim.git
+cd GalSim
+
+Filtered the repo to remove files we don't want:
+
+git filter-branch \
+    --prune-empty \
+    --index-filter '
+        git ls-tree -z -r --name-only --full-tree $GIT_COMMIT \
+        | grep -z -v "^include/galsim/Std.h$" \
+        | grep -z -v "^include/galsim/Image.h$" \
+        | grep -z -v "^include/galsim/ImageArith.h$" \
+        | grep -z -v "^include/galsim/CppShear.h$" \
+        | grep -z -v "^include/galsim/Bounds.h$" \
+        | grep -z -v "^include/galsim/Angle.h$" \
+        | grep -z -v "^include/galsim/hsm/PSFCorr.h$" \
+        | grep -z -v "^src/hsm/" \
+        | grep -z -v "^src/Image.cpp" \
+        | grep -z -v "^src/CppShear.cpp" \
+        | xargs -0 git rm --cached -r
+    ' \
+    -- \
+    --all
+
+
+Merge into meas_extensions_shapeHSM:
+
+cd /path/to/meas_extensions_shapeHSM
+git fetch /path/to/GalSim
+git merge FETCH_HEAD --edit
+
+Because you may pull in lots of commits (the "git filter-branch" command
+doesn't remove empty merge commits), please be sure to give the merge
+commit a full and helpful commit message.
+
+
+
