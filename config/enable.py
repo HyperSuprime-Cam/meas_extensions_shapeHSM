@@ -6,4 +6,3 @@
 
 import lsst.meas.extensions.shapeHSM
 root.algorithms.names |= ["shape.hsm.regauss", "shape.hsm.moments", "shape.hsm.psfMoments"]
-root.slots.shape = "shape.hsm.moments"
