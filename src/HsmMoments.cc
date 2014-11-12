@@ -126,13 +126,13 @@ void HsmMoments::calculate(
     PTR(afw::image::Image<int>) hsmMask = convertMask(*afwMask, bbox, badPixelMask);
     ImageConverter<int> const mask(hsmMask);
 
+    int const x0 = afwImage->getX0(), y0 = afwImage->getY0();
+
     galsim::hsm::CppShapeData shape;
     try {
         // GalSim's HSM uses the FITS convention of 1,1 for the lower-left corner
         shape = galsim::hsm::FindAdaptiveMomView(image.getImageView(), mask.getImageView(),
-                                                 width, 1.0e-6,
-                                                 center.getX() - bbox.getMinX() + 1.0,
-                                                 center.getY() - bbox.getMinY() + 1.0);
+                                                 width, 1.0e-6, center.getX() - x0, center.getY() - y0);
     } catch (galsim::hsm::HSMError const& e) {
         throw LSST_EXCEPT(pex::exceptions::RuntimeErrorException, e.what());
     }
@@ -142,8 +142,8 @@ void HsmMoments::calculate(
     typedef afw::geom::ellipses::Separable<afw::geom::ellipses::Distortion,
                                            afw::geom::ellipses::DeterminantRadius> Ellipse;
 
-    source.set(_centroidKeys.meas, afw::geom::Point2D(shape.moments_centroid.x + bbox.getMinX() - 1.0,
-                                                      shape.moments_centroid.y + bbox.getMinY() - 1.0));
+    source.set(_centroidKeys.meas, afw::geom::Point2D(shape.moments_centroid.x + x0,
+                                                      shape.moments_centroid.y + y0));
     source.set(getKeys().meas, Ellipse(ellip, radius));
     // XXX calculate errors in shape, centroid?
 
@@ -167,6 +167,10 @@ void HsmSourceMoments::_apply(
     afw::geom::Box2I bbox = source.getFootprint()->getBBox();
     if (bbox.getArea() == 0) {
         throw LSST_EXCEPT(lsst::pex::exceptions::LengthErrorException, "No pixels to measure.");
+    }
+    if (!bbox.contains(afw::geom::Point2I(center) - afw::geom::Extent2I(exposure.getXY0()))) {
+        throw LSST_EXCEPT(pex::exceptions::RuntimeErrorException,
+                          "Center not contained in footprint bounding box");
     }
 
     double const psfSigma = exposure.getPsf()->computeShape(center).getTraceRadius();
@@ -193,11 +197,8 @@ void HsmPsfMoments::_apply(
     mask->setXY0(image->getXY0());
 
     double const psfSigma = exposure.getPsf()->computeShape(center).getTraceRadius();
-    HsmMoments::calculate(source, image, mask, image->getBBox(afw::image::PARENT), afw::geom::Point2D(0, 0),
+    HsmMoments::calculate(source, image, mask, image->getBBox(afw::image::LOCAL), afw::geom::Point2D(0, 0),
                           0, psfSigma);
-
-    // Adjust centroid for size of box
-    source.set(_centroidKeys.meas, source.get(_centroidKeys.meas) - afw::geom::Extent2D(image->getXY0()));
 }
 
 LSST_MEAS_ALGORITHM_PRIVATE_IMPLEMENTATION(HsmSourceMoments);

@@ -178,6 +178,10 @@ void HsmShape::_apply(
     if (bbox.getArea() == 0) {
         throw LSST_EXCEPT(lsst::pex::exceptions::LengthErrorException, "No pixels to measure.");
     }
+    if (!bbox.contains(afw::geom::Point2I(center) - afw::geom::Extent2I(exposure.getXY0()))) {
+        throw LSST_EXCEPT(pex::exceptions::RuntimeErrorException,
+                          "Center not contained in footprint bounding box");
+    }
 
     PTR(afw::detection::Psf::Image) psf = exposure.getPsf()->computeImage(center);
     psf->setXY0(0, 0);
@@ -208,8 +212,8 @@ void HsmShape::_apply(
         shape = galsim::hsm::EstimateShearView(image.getImageView(), psfImage.getImageView(),
                                                mask.getImageView(), skyvar, _shearType.c_str(), "FIT",
                                                2.5*psfSigma, psfSigma, 1.0e-6,
-                                               center.getX() - bbox.getMinX() + 1,
-                                               center.getY() - bbox.getMinY() + 1);
+                                               center.getX() - exposure.getX0(),
+                                               center.getY() - exposure.getY0());
     } catch (galsim::hsm::HSMError const& e) {
         throw LSST_EXCEPT(pex::exceptions::RuntimeErrorException, e.what());
     }

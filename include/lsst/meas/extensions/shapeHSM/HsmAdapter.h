@@ -25,8 +25,8 @@ public:
 
     /// Conversion
     galsim::ImageView<PixelT> getImageView() const {
-        galsim::Bounds<int> const bounds(_box.getMinX() + 1, _box.getMaxX() + 1,
-                                         _box.getMinY() + 1, _box.getMaxY() + 1);
+        galsim::Bounds<int> const bounds(_box.getMinX(), _box.getMaxX(),
+                                         _box.getMinY(), _box.getMaxY());
         return galsim::ImageView<PixelT>(_image->getArray().getData(), _owner,
                                          _image->getArray().template getStride<0>(), bounds);
     }
@@ -51,7 +51,7 @@ PTR(afw::image::Image<int>) convertMask(
     typedef afw::image::Mask<afw::image::MaskPixel> Mask;
     PTR(ImageI) hsmMask = boost::make_shared<ImageI>(bbox.getDimensions());
     for (int y = 0; y < bbox.getHeight(); ++y) {
-        Mask::const_x_iterator in = afwMask.x_at(afwMask.getX0(), y + afwMask.getY0());
+        Mask::const_x_iterator in = afwMask.row_begin(y);
         ImageI::x_iterator out = hsmMask->row_begin(y);
         ImageI::const_x_iterator end = hsmMask->row_end(y);
         for (; out != end; ++in, ++out) {
