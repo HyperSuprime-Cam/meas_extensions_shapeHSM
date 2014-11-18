@@ -21,15 +21,41 @@ public:
     ImageConverter(PTR(afw::image::Image<PixelT>) image, afw::geom::Box2I box) :
         _image(image), _owner(new PixelT), _box(box) {}
     ImageConverter(PTR(afw::image::Image<PixelT>) image) :
-        _image(image), _owner(new PixelT), _box(image->getBBox(afw::image::PARENT)) {}
+        _image(image), _owner(new PixelT), _box(image->getBBox(afw::image::LOCAL)) {}
 
     /// Conversion
     galsim::ImageView<PixelT> getImageView() const {
-        galsim::Bounds<int> const bounds(_box.getMinX(), _box.getMaxX(),
-                                         _box.getMinY(), _box.getMaxY());
-        return galsim::ImageView<PixelT>(_image->getArray().getData(), _owner,
-                                         _image->getArray().template getStride<0>(), bounds);
+        // Make upper bound inclusive: that's the GalSim standard, but not LSST
+        galsim::Bounds<int> const bounds(_box.getMinX(), _box.getMaxX() - 1,
+                                         _box.getMinY(), _box.getMaxY() - 1);
+        typename afw::image::Image<PixelT>::Array array = _image->getArray();
+        int const stride = array.template getStride<0>();
+        // Advance into the array by the box, as GalSim's BaseImage.addressPixel takes it off
+        PixelT* ptr = reinterpret_cast<PixelT*>(array.getData() + _box.getMinY()*stride + _box.getMinX());
+        return galsim::ImageView<PixelT>(ptr, _owner, stride, bounds);
     }
+
+#if 0
+    /// Write to FITS
+    ///
+    /// Intended for debugging, as it inspects the ImageView
+    void writeFits(std::string const& filename) const {
+        galsim::ImageView<PixelT> view = getImageView();
+        galsim::Bounds<int> const& bounds = view.getBounds();
+        int const width = view.getXMax() - view.getXMin() + 1;
+        int const height = view.getYMax() - view.getYMin() + 1;
+        afw::image::Image<PixelT> out(width, height);
+        int const x0 = bounds.getXMin(), y0 = bounds.getYMin();
+        for (int y = bounds.getYMin(); y <= bounds.getYMax(); ++y) {
+            for (int x = bounds.getXMin(); x <= bounds.getXMax(); ++x) {
+                out(x - x0, y - y0) = view.at(x, y);
+            }
+        }
+        out.writeFits(filename);
+    }
+    void writeFits(boost::format const& format) const { writeFits(format.str()); }
+#endif
+
 private:
     PTR(afw::image::Image<PixelT>) _image;
     boost::shared_ptr<PixelT> _owner;
