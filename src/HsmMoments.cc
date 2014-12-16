@@ -132,7 +132,7 @@ void HsmMoments::calculate(
     try {
         // GalSim's HSM uses the FITS convention of 1,1 for the lower-left corner
         shape = galsim::hsm::FindAdaptiveMomView(image.getImageView(), mask.getImageView(),
-                                                 width, 1.0e-6, center.getX() - x0, center.getY() - y0);
+                                                 width, 1.0e-6, center.getX(), center.getY());
     } catch (galsim::hsm::HSMError const& e) {
         throw LSST_EXCEPT(pex::exceptions::RuntimeErrorException, e.what());
     }
@@ -142,8 +142,7 @@ void HsmMoments::calculate(
     typedef afw::geom::ellipses::Separable<afw::geom::ellipses::Distortion,
                                            afw::geom::ellipses::DeterminantRadius> Ellipse;
 
-    source.set(_centroidKeys.meas, afw::geom::Point2D(shape.moments_centroid.x + x0,
-                                                      shape.moments_centroid.y + y0));
+    source.set(_centroidKeys.meas, afw::geom::Point2D(shape.moments_centroid.x, shape.moments_centroid.y));
     source.set(getKeys().meas, Ellipse(ellip, radius));
     // XXX calculate errors in shape, centroid?
 
@@ -168,7 +167,7 @@ void HsmSourceMoments::_apply(
     if (bbox.getArea() == 0) {
         throw LSST_EXCEPT(lsst::pex::exceptions::LengthErrorException, "No pixels to measure.");
     }
-    if (!bbox.contains(afw::geom::Point2I(center) - afw::geom::Extent2I(exposure.getXY0()))) {
+    if (!bbox.contains(afw::geom::Point2I(center))) {
         throw LSST_EXCEPT(pex::exceptions::RuntimeErrorException,
                           "Center not contained in footprint bounding box");
     }
@@ -197,7 +196,7 @@ void HsmPsfMoments::_apply(
     mask->setXY0(image->getXY0());
 
     double const psfSigma = exposure.getPsf()->computeShape(center).getTraceRadius();
-    HsmMoments::calculate(source, image, mask, image->getBBox(afw::image::LOCAL), afw::geom::Point2D(0, 0),
+    HsmMoments::calculate(source, image, mask, image->getBBox(afw::image::PARENT), afw::geom::Point2D(0, 0),
                           0, psfSigma);
 }
 
