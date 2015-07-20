@@ -202,9 +202,9 @@ void HsmShape::_apply(
     sctrl.setAndMask(badPixelMask);
     typename ExposureT::MaskedImageT::Variance const variance(*exposure.getMaskedImage().getVariance(), bbox,
                                                               afw::image::PARENT);
-    afw::math::Statistics stat = afw::math::makeStatistics(variance, *afwMask, afw::math::MEDIAN, sctrl);
+    typename ExposureT::MaskedImageT::Mask const subMask(*afwMask, bbox, afw::image::PARENT);
+    afw::math::Statistics stat = afw::math::makeStatistics(variance, subMask, afw::math::MEDIAN, sctrl);
     double const skyvar = sqrt(stat.getValue(afw::math::MEDIAN));
-
     double const psfSigma = exposure.getPsf()->computeShape(center).getTraceRadius();
 
     galsim::hsm::CppShapeData shape, psfShape;
