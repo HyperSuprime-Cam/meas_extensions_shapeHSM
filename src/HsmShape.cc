@@ -204,7 +204,7 @@ void HsmShape::_apply(
                                                               afw::image::PARENT);
     typename ExposureT::MaskedImageT::Mask const subMask(*afwMask, bbox, afw::image::PARENT);
     afw::math::Statistics stat = afw::math::makeStatistics(variance, subMask, afw::math::MEDIAN, sctrl);
-    double const skyvar = sqrt(stat.getValue(afw::math::MEDIAN));
+    double const skyvar = stat.getValue(afw::math::MEDIAN);
     double const psfSigma = exposure.getPsf()->computeShape(center).getTraceRadius();
 
     galsim::hsm::CppShapeData shape, psfShape;
